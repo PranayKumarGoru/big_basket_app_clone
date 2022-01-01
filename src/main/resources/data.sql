@@ -9,6 +9,16 @@ CREATE TABLE Users (
 INSERT INTO Users (user_id, Password, Name, Email, Phone, Address)  
    VALUES ('ram123', 'dummyP', 'Ram Charan', 'ram.cherry@relevel.com', '7777000055', 'Plot No 5/A, Pedemma Temple Lane, Madhapur, Hyderabad');
 
+CREATE TABLE Operator (
+    operator_id varchar(255) PRIMARY KEY,
+    password varchar(255),
+    name varchar(255),
+    email varchar(255)
+);
+
+INSERT INTO Operator (operator_id, password, name, email)  
+   VALUES ('anshuB', 'PwdDtdc', 'Anshul Bist', 'anshul.bist@relevel.com');
+
 CREATE TABLE ServiceCities (
 	city varchar(255) PRIMARY KEY
 );
@@ -20,6 +30,31 @@ INSERT INTO ServiceCities(city)
     VALUES ('mumbai');
     
     
+CREATE TABLE StoreManagers (
+    manager_id varchar(255) PRIMARY KEY,
+    password varchar(255),
+    operating_city varchar(255) references ServiceCities(city),
+    name varchar(255),
+    email varchar(255)
+);
+
+INSERT INTO StoreManagers (manager_id, password, operating_city,name, email)  
+   VALUES ('tanmayB', 'samplePwd', 'hyderabad', 'Tanmay Bhat','tanmay.b@relevel.com');
+   
+
+CREATE TABLE DeliveryBoyDetails (
+    delivery_boy_id varchar(255) PRIMARY KEY,
+    password varchar(255),
+    name varchar(255),
+    mobile varchar(255)
+);
+
+INSERT INTO DeliveryBoyDetails (delivery_boy_id, password, name, mobile)  
+   VALUES ('sukeshG', 'samplePwd', 'Sukesh Gupta', '8856954712');
+
+INSERT INTO DeliveryBoyDetails (delivery_boy_id, password, name, mobile)  
+   VALUES ('veeruV', 'VireshPwd', 'Viresh', '8542136987');
+   
 CREATE TABLE Inventory (
     item_id varchar(255) PRIMARY KEY AUTO_INCREMENT,
     city varchar(255) references ServiceCities(city),
@@ -31,7 +66,7 @@ CREATE TABLE Inventory (
     available_quantity INTEGER
 );
 
-INSERT INTO Inventory (city, brand_name, item_name, category, quantity, price, available_quantity)  
+INSERT INTO Inventory (city, item_name, brand_name, category, quantity, price, available_quantity)  
    VALUES ('hyderabad', 'Coconut Water', 'raw pressery', 'sandbfoods', '200 ml', 58, 200);
 INSERT INTO Inventory (city, brand_name, item_name, category, quantity, price, available_quantity)  
    VALUES ('hyderabad', 'Cold Exracted Juice - Mixed Fruit', 'raw pressery', 'sandbfoods', '1 L', 190, 200);
@@ -162,19 +197,24 @@ CREATE TABLE ORDER_DETAILS (
    order_id INTEGER AUTO_INCREMENT PRIMARY KEY,
    user_id varchar(255) references Users(user_id),
    order_created_timestamp timestamp,
+   delivery_boy_id varchar(255) references DeliveryBoyDetails(delivery_boy_id),
    order_status varchar2(255)
 );
      
-INSERT INTO ORDER_DETAILS (user_id, order_created_timestamp, order_status)
-values ('ram123', '2021-11-10 10:20:20.000', 'Delivered');
+INSERT INTO ORDER_DETAILS (user_id, order_created_timestamp, delivery_boy_id, order_status)
+values ('ram123', '2021-11-10 10:20:20.000', 'sukeshG','Delivered');
 
 INSERT INTO ORDER_DETAILS (user_id, order_created_timestamp, order_status)
 values ('ram123', '2021-12-16 12:34:20.000', 'Pending');
+
+INSERT INTO ORDER_DETAILS (user_id, order_created_timestamp, delivery_boy_id,order_status)
+values ('ram123', '2021-12-18 12:34:20.000', 'veeruV','out for delivery');
 
 CREATE TABLE ORDER_ITEMS (
    order_items_id INTEGER AUTO_INCREMENT PRIMARY KEY,
    order_id INTEGER references ORDER_DETAILS(order_id),
    item_id INTEGER references Inventory(item_id),
+   rating DECIMAL,
    quantity INTEGER
 );
 
@@ -187,3 +227,25 @@ UPDATE Inventory set available_quantity = (select available_quantity from Invent
 INSERT INTO ORDER_ITEMS (order_id, item_id, quantity)  
    VALUES (2, 7, 2);
 UPDATE Inventory set available_quantity = (select available_quantity from Inventory where item_id = 7) - 2 where item_id = 7;
+
+INSERT INTO ORDER_ITEMS (order_id, item_id, quantity)  
+   VALUES (3, 5, 1);
+UPDATE Inventory set available_quantity = (select available_quantity from Inventory where item_id = 5) - 1 where item_id = 5;
+INSERT INTO ORDER_ITEMS (order_id, item_id, quantity)  
+   VALUES (3, 6, 2);
+UPDATE Inventory set available_quantity = (select available_quantity from Inventory where item_id = 6) - 2 where item_id = 6;
+
+
+CREATE TABLE Queries (
+    query_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id varchar(255) references Users(user_id),
+    order_id varchar(255) references ORDER_DETAILS(order_id),
+    operator_id varchar(255) references Operator(operator_id),
+    query varchar(255),
+    status varchar(255),
+    operator_comment varchar(255)
+);
+
+
+INSERT INTO Queries (user_id, order_id, query, status)  
+   VALUES ('ram123',1, 'The quality of some of the items is not good', 'pending');
